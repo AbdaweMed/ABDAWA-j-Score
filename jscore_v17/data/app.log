@@ -1,0 +1,29 @@
+[2025-09-07 18:04:19,847] ERROR in app: Exception on /submit [POST]
+Traceback (most recent call last):
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/app.py", line 455, in submit
+    cur.execute(
+sqlite3.OperationalError: 27 values for 28 columns
+[2025-09-07 18:04:19,854] ERROR in app: Unhandled 500
+Traceback (most recent call last):
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/.venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/macbookair/Downloads/jscore_v15_corrige_mac/app.py", line 455, in submit
+    cur.execute(
+sqlite3.OperationalError: 27 values for 28 columns
+[2025-09-07 20:52:18,177] INFO in app: New submission id=1 pid=P-20250907-HAOJ ip=127.0.0.1 ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Safari/605.1.15 diag= j=3.936 i=Normale / طبيعي — Impossible de détecter le jaunissement sur cette photo (œil non détecté/indéterminé). Reprenez ou téléversez une autre photo pour une meilleure estimation.
+[2025-09-07 21:19:43,169] INFO in app: New submission id=2 pid=P-20250907-0DDJ ip=127.0.0.1 ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Safari/605.1.15 diag= j=28.7213 i=Consulter un médecin / استشارة طبيب Recommandé de reprendre ou retéléverser la photo.
+[2025-09-07 22:25:55,679] INFO in app: New submission id=3 pid=P-20250907-WU36 ip=127.0.0.1 ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Safari/605.1.15 diag= j=2.9999 i=Normale / طبيعي Recommandé de reprendre ou retéléverser la photo.

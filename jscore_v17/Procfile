@@ -1,0 +1,1 @@
+web: gunicorn jscore_v17.app:app

@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="fr" class="ltr">
+<head>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <meta charset="utf-8">
+  <title>ABDAWA J‑Score Estimation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root{
+      --grad-start:#4f46e5; --grad-mid:#7c3aed; --grad-end:#06b6d4;
+      --card-bg: rgba(255,255,255,.85); --text-dark:#0f172a; --accent:#16a34a;
+      --bg-dark:#0b1220; --surface-dark: rgba(20,30,50,.6); --text-light:#e2e8f0;
+    }
+    html.ltr, html.rtl { font-family: 'Poppins', 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body{
+      min-height:100vh;
+      background: radial-gradient(1200px 600px at -10% -10%, #eef2ff, transparent 60%),
+                  radial-gradient(1200px 600px at 110% 110%, #ecfeff, transparent 60%),
+                  linear-gradient(135deg, var(--grad-start), var(--grad-mid), var(--grad-end));
+      background-size: cover; color: var(--text-dark);
+    }
+    .dark body, body.dark{
+      background: radial-gradient(1000px 500px at -10% -10%, #0f172a, transparent 60%),
+                  radial-gradient(1000px 500px at 110% 110%, #0b1220, transparent 60%),
+                  linear-gradient(135deg, #0b1220, #111827, #1f2937);
+      color: var(--text-light);
+    }
+    .glass-card{ background: var(--card-bg); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 10px 30px rgba(2,6,23,.15); border-radius: 1.25rem; }
+    body.dark .glass-card{ background: var(--surface-dark); border-color: rgba(255,255,255,.15); }
+    .brand-title{ font-weight: 800; letter-spacing:.2px; background: linear-gradient(90deg, #fff, #f0f9ff); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 1px 0 rgba(0,0,0,.08); }
+    body.dark .brand-title{ background: linear-gradient(90deg, #e2e8f0, #cbd5e1); -webkit-background-clip: text; color: transparent; }
+    .brand-sub{ color:#e2e8f0; }
+    .btn-primary{ background-image: linear-gradient(90deg, var(--grad-start), var(--grad-mid)); border:0; }
+    .btn-primary:hover{ filter: brightness(1.05); }
+    .btn-outline-secondary{ border-color:#cbd5e1; color:#0f172a; }
+    body.dark .btn-outline-secondary{ color:#e2e8f0; border-color:#334155; }
+    .section-title{ font-weight:700; margin: .75rem 0; display:flex; align-items:center; gap:.5rem; }
+    .section-title .dot{ width:10px; height:10px; border-radius:999px; background:var(--accent); box-shadow: 0 0 0 4px rgba(22,163,74,.15); }
+    .required::after { content:" *"; color:#dc2626; }
+    #preview { max-width: 260px; max-height: 180px; margin-top: .5rem; display: none; border: 1px solid #ddd; border-radius:.5rem; }
+    .rtl { direction: rtl; text-align: right; font-family:'Tajawal','Poppins',system-ui; }
+    .ltr { direction: ltr; text-align: left; }
+    .badge.fs-6{ font-weight:600; }
+    .topbar{ display:flex; justify-content:space-between; align-items:center; padding: .75rem 1rem; border-radius: 1rem; margin-bottom:1rem; background: rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); color:#eef2ff; }
+    body.dark .topbar{ background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); }
+    .toggle-icon{ width:22px; height:22px; }
+  
+    /* v17.1 additions: styles for Remarque | Interprétation */
+    .remarque-interpretation{display:grid;grid-template-columns:1fr min-content 1fr;gap:1rem;align-items:start;margin:.5rem 0 1rem 0}
+    .remarque-interpretation .remarque{background:#fff8e6;color:#7a3e00;font-family:Georgia,'Times New Roman',serif;padding:.5rem .75rem;border-radius:.75rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .remarque-interpretation .separator{width:2px;background:linear-gradient(to bottom,rgba(0,0,0,.08),rgba(0,0,0,.25),rgba(0,0,0,.08));border-radius:2px;min-height:100%}
+    .remarque-interpretation .interpretation{background:#e8f4ff;color:#003a66;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;padding:.5rem .75rem;border-radius:.75rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .remarque-interpretation p{margin:.25rem 0}
+    .contact-mohamed{margin:1.25rem 0 .5rem 0;padding:.75rem 1rem;border-left:4px solid #0b62a4;background:#f1f7ff;border-radius:.5rem}
+    .contact-mohamed a{font-weight:600;text-decoration:none}
+    
+</style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <img alt="logo" width="36" height="36" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g' x1='0' x2='1'><stop stop-color='%234f46e5'/><stop offset='1' stop-color='%2306b6d4'/></linearGradient></defs><circle cx='24' cy='24' r='22' fill='url(%23g)'/><path d='M15 25c6-8 12-8 18 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/><circle cx='24' cy='25' r='3' fill='white'/></svg>" />
+        <div>
+          <div class="h4 m-0 brand-title">ABDAWA J‑Score Estimation</div>
+          <small class="brand-sub">Oeil • Biomarqueurs • Interprétation</small>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" id="btn-dark" class="btn btn-outline-secondary btn-sm" title="Mode clair/sombre">
+          <span class="toggle-icon">🌓</span>
+        </button>
+        <div class="form-check form-switch m-0">
+          <input class="form-check-input" type="checkbox" id="lang-toggle">
+          <label class="form-check-label" for="lang-toggle" style="color:#e2e8f0">AR / FR</label>
+        </div>
+        <button type="button" id="btn-refresh" class="btn btn-outline-secondary btn-sm">Rafraîchir / تحديث</button>
+      </div>
+    </div>
+
+    <div class="glass-card p-4 p-md-5">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-3">
+            {% for category, msg in messages %}
+              <div class="alert alert-{{ 'danger' if category=='error' else category }} mb-2" role="alert">{{ msg|safe }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form action="{{ url_for('submit') }}" method="post" enctype="multipart/form-data" class="row g-3">
+        <div class="col-12 section-title"><span class="dot"></span> Identité</div>
+        <div class="col-md-4">
+          <label class="form-label">ID patient (anonymisé) / معرّف المُراجِع (مُمََوهٌ)</label>
+          <input type="text" name="patient_id" class="form-control" placeholder="Ex: P-00123 (laisser vide pour auto)">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Renseignement clinique / المعلومات السريرية</label>
+          <select name="diag" class="form-select">
+            <option value="">—</option>
+            <option value="hepatite_chronique">Hépatite Chronique – التهاب كبد مزمن</option>
+            <option value="cirrhose">Cirrhose – تشمع الكبد</option>
+            <option value="CHC">CHC – سرطان الخلايا الكبدية</option>
+            <option value="CHB">CHB (Hépatite B chronique) – التهاب الكبد B المزمن</option>
+            <option value="autre">Autre – أخرى</option>
+          </select>
+        </div>
+
+        <div class="col-12 section-title"><span class="dot"></span> Dates</div>
+        <div class="col-md-3">
+          <label class="form-label required">Date de la photo / تاريخ الصورة</label>
+          <input type="date" name="date_photo" class="form-control" value="{{ today }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">Date des biomarqueurs / تاريخ التحاليل</label>
+          <input type="date" name="date_bio" class="form-control" value="" required>
+        </div>
+
+        <div class="col-12 section-title"><span class="dot"></span> Photo de l’œil</div>
+        <div class="col-md-6">
+          <label class="form-label required">Téléverser (png, jpg, jpeg, webp) / رفع الصورة</label>
+          <input class="form-control" type="file" id="eye_photo" name="eye_photo" accept="image/*" capture="user" required>
+          <img id="preview" alt="Aperçu" />
+<div class="mt-2">
+  <button type="button" class="btn btn-outline-primary" id="openCameraBtn">📷 Prendre avec la caméra</button>
+  <small class="text-muted d-block mt-1">Sur mobile, ce bouton ouvre la caméra frontale pour cadrer l’œil.</small>
+</div>
+
+<!-- Camera modal/area -->
+<div id="cameraArea" class="card mt-3 p-3 d-none">
+  <div class="d-flex justify-content-between align-items-center">
+    <strong>Caméra</strong>
+    <button type="button" class="btn-close" id="closeCameraBtn" aria-label="Fermer"></button>
+  </div>
+  <div class="position-relative mt-2" style="max-width: 480px;">
+    <video id="video" autoplay playsinline style="width:100%; border-radius: 12px; background:#000;"></video>
+    <!-- Overlay guide -->
+    <div id="guideOverlay" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;">
+      <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      </svg>
+      <div style="position:absolute; bottom:8px; left:0; right:0; text-align:center; color:white; text-shadow:0 1px 3px rgba(0,0,0,.8); font-size:.9rem;">
+        Alignez l’œil dans le cercle, évitez le flash et les reflets.
+      </div>
+    </div>
+  </div>
+  <div class="mt-2 d-flex gap-2">
+    <button type="button" class="btn btn-success" id="snapBtn">📸 Prendre la photo</button>
+    <button type="button" class="btn btn-secondary" id="switchCamBtn">🔁 Inverser caméra</button>
+    <button type="button" class="btn btn-outline-danger" id="stopCamBtn">🛑 Stop</button>
+  </div>
+  <canvas id="canvas" class="d-none"></canvas>
+</div>
+
+<!-- Quality hints panel (client-side) -->
+<div id="qualityPanel" class="alert alert-info mt-3 d-none">
+  <div class="fw-bold mb-1">Contrôle rapide de qualité (local, sans envoi) :</div>
+  <ul id="qualityHints" class="mb-0">
+    <li>Exposition correcte</li>
+    <li>Contraste suffisant</li>
+    <li>Netteté correcte</li>
+    <li>Peu de reflets</li>
+  </ul>
+</div>
+          <div class="form-text">Un aperçu apparaît après sélection.</div>
+        </div>
+
+        <div class="col-12 section-title"><span class="dot"></span> Biomarqueurs</div>
+        <div class="col-md-3">
+          <label class="form-label required">Âge (ans) / العمر (بالسنوات)</label>
+          <input type="number" step="1" min="0" max="120" name="age" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">ALT (U/L) / ناقلة أمين الألانين</label>
+          <input type="number" step="0.01" min="0" name="alt" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">AST (U/L) / ناقلة أمين الأسبارتات</label>
+          <input type="number" step="0.01" min="0" name="ast" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">PLT (×10⁹/L) / الصفائح الدموية</label>
+          <input type="number" step="0.01" min="1" name="plt" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">AFP (ng/mL) / ألفا فيتو بروتين</label>
+          <input type="number" step="0.01" min="0" name="afp" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">GGT (U/L) / ناقلة غاما-غلوتاميل</label>
+          <input type="number" step="0.01" min="0" name="ggt" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">PA (U/L) / الفوسفاتاز القلوي</label>
+          <input type="number" step="0.01" min="0" name="pa" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">BT – Bilirubine totale (µmol/L) / البيليروبين الكلي
+            <span class="text-muted" data-bs-toggle="tooltip" title="BT normale: 3–12 µmol/L">?</span>
+          </label>
+          <input type="number" step="0.01" min="0" name="bt" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">BD – Bilirubine directe (µmol/L) / البيليروبين المباشر</label>
+          <input type="number" step="0.01" min="0" name="bd" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">AST ULN (U/L) / الحد الأعلى الطبيعي لـ AST
+            <span class="text-muted" data-bs-toggle="tooltip" title="ULN AST par défaut: 40 U/L (modifiable)">?</span>
+          </label>
+          <input type="number" step="0.01" min="1" name="uln_ast" class="form-control" value="40">
+        </div>
+
+        <div class="col-12 section-title"><span class="dot"></span> J‑score</div>
+        <div class="col-md-4">
+          <label class="form-label">J‑score</label>
+          <input type="text" class="form-control" value="{{ result_score if result_score is not none else '' }}" placeholder="Sera affiché après soumission" readonly>
+          {% if k_value is not none and yellow_ratio is not none %}
+            <div class="form-text mt-1">
+              Taux de jaune détecté : {{ (yellow_ratio*100)|round(1) }} % • K = {{ '%.1f' % k_value }}
+            </div>
+          {% endif %}
+        </div>
+        
+    <div class="col-md-6">
+      <label class="form-label">Remarque & Interprétation / الملاحظة والتفسير</label>
+      <div class="remarque-interpretation">
+        <div class="remarque">
+          <p><strong>Remarque</strong></p>
+          <p class="small-muted">
+            {%- set _remark = '' -%}
+            {%- if result_interp and 'Recommandé de reprendre' in result_interp -%}
+              {%- set _remark = 'Photo à reprendre' -%}
+            {%- endif -%}
+            {{ _remark if _remark else '—' }}
+          </p>
+        </div>
+        <div class="separator" aria-hidden="true"></div>
+        <div class="interpretation">
+          <p><strong>Interprétation</strong></p>
+          <p class="small-muted">
+            {%- if result_interp -%}
+              {%- set _base = result_interp.replace('Recommandé de reprendre ou retéléverser la photo.', '').strip() -%}
+              {%- if _base.startswith('Normale') -%}
+                Normale
+              {%- elif _base.startswith('Consulter') -%}
+                Consulter
+              {%- elif _base.startswith('Urgemment') -%}
+                Urgent&nbsp;: consulter
+              {%- else -%}
+                {{ _base }}
+              {%- endif -%}
+            {%- else -%}
+              —
+            {%- endif -%}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+
+        <div class="col-12 section-title"><span class="dot"></span> Consentement & signature</div>
+        <div class="col-12">
+          <div class="border rounded p-3 bg-light">
+            <strong>Consentement éclairé / الموافقة المستنيرة</strong>
+            <p class="mb-2">
+              Je déclare avoir été informé(e) de l’objectif, de la procédure et des bénéfices/risques potentiels de cette étude.
+              Mes données (photo de l’œil et biomarqueurs) seront utilisées à des fins de recherche, de développement et
+              d’amélioration du modèle J‑score. La confidentialité sera respectée conformément aux bonnes pratiques.
+            </p>
+            <p class="mb-2">
+              Étude autorisée : <em>{{ version }}</em> – Référence éthique : <strong>Ministère de la Santé MR – 012-2025</strong> (07 juillet 2025).
+            </p>
+            <p class="mb-0">
+              أقر بأنني قد تم اطلاعي على هدف هذه الدراسة وإجراءاتها ومنافعها ومخاطرها المحتملة... تمت الموافقة الأخلاقية بالمرجع <strong>012-2025</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 mt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="on" id="consent" name="consent" required>
+            <label class="form-check-label" for="consent">
+              J’ai lu et compris l’information ci‑dessus et <u>j’accepte</u> de participer / لقد قرأت وفهمت المعلومات أعلاه و<u>أوافق</u> على المشاركة
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6 mt-2">
+          <label class="form-label">Nom / Prénom du patient (signature électronique) / اسم المُراجِع (توقيع إلكتروني)</label>
+          <input type="text" name="patient_signature" class="form-control" placeholder="Nom et prénom / الاسم واللقب">
+        </div>
+
+        <div class="col-12 mt-3 d-flex gap-2">
+          <button class="btn btn-primary btn-lg">Soumettre / إرسال</button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Réinitialiser / إعادة تعيين</a>
+          <a class="btn btn-outline-secondary" href="{{ url_for('about') }}" target="_blank">À propos / حول</a>
+        </div>
+      
+    <div class="contact-mohamed">
+      Pour toute information complémentaire ou suggestion, vous pouvez contacter <strong>Mohamed Abdawa</strong> :
+      <a href="mailto:mohamed.abdawa@inserm.fr">mohamed.abdawa@inserm.fr</a>.
+    </div>
+    
+</form>
+    </div>
+  </div>
+
+  <script>
+    // Preview
+    const input = document.getElementById('eye_photo');
+    const preview = document.getElementById('preview');
+    if (input) {
+      input.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) { preview.style.display='none'; preview.src=''; return; }
+        const url = URL.createObjectURL(file);
+        preview.src = url; preview.style.display = 'block';
+      });
+    }
+    // Refresh
+    document.getElementById('btn-refresh').addEventListener('click', () => { location.reload(); });
+    // RTL/LTR toggle
+    const langToggle = document.getElementById('lang-toggle');
+    const root = document.querySelector('html');
+    const savedDir = localStorage.getItem('lang_dir') || 'ltr';
+    root.classList.remove('rtl','ltr'); root.classList.add(savedDir);
+    langToggle.checked = (savedDir === 'rtl');
+    langToggle.addEventListener('change', () => {
+      const dir = langToggle.checked ? 'rtl' : 'ltr';
+      root.classList.remove('rtl','ltr'); root.classList.add(dir);
+      localStorage.setItem('lang_dir', dir);
+    });
+    // Dark mode toggle (persists)
+    const btnDark = document.getElementById('btn-dark');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.body.classList.add('dark');
+    btnDark.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  const fileInput = document.getElementById('eye_photo');
+  const preview   = document.getElementById('preview');
+  const panel     = document.getElementById('qualityPanel');
+  const hintsUL   = document.getElementById('qualityHints');
+
+  // Camera elements
+  const cameraArea = document.getElementById('cameraArea');
+  const openBtn    = document.getElementById('openCameraBtn');
+  const closeBtn   = document.getElementById('closeCameraBtn');
+  const stopBtn    = document.getElementById('stopCamBtn');
+  const switchBtn  = document.getElementById('switchCamBtn');
+  const snapBtn    = document.getElementById('snapBtn');
+  const video      = document.getElementById('video');
+  const canvas     = document.getElementById('canvas');
+
+  let stream = null;
+  let facing = 'user'; // front camera default
+
+  function qualityHintsFromImage(img){
+    // Draw to canvas and analyze pixels
+    const w = Math.min(512, img.naturalWidth || img.width);
+    const h = Math.round(w * (img.naturalHeight || img.height) / (img.naturalWidth || img.width));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    const { data } = ctx.getImageData(0,0,w,h);
+
+    // Compute luminance, stats, highlights, and simple blur metric (Laplacian variance approximation)
+    let sum=0, sum2=0, hi=0;
+    const lum = new Float32Array(w*h);
+    for(let i=0, p=0; i<data.length; i+=4, p++){
+      const r = data[i]/255, g = data[i+1]/255, b = data[i+2]/255;
+      const L = 0.2126*r + 0.7152*g + 0.0722*b;
+      lum[p]=L; sum+=L; sum2+=L*L;
+      if (Math.max(r,g,b) > 0.98) hi++;
+    }
+    const N = w*h;
+    const mean = sum/N;
+    const std  = Math.sqrt(Math.max(0, sum2/N - mean*mean));
+    const highlightsFrac = hi/N;
+
+    // Blur estimate via gradients
+    let gradSum=0, cnt=0;
+    for(let y=1; y<h-1; y++){
+      for(let x=1; x<w-1; x++){
+        const i = y*w + x;
+        const gx = lum[i+1] - lum[i-1];
+        const gy = lum[i+w] - lum[i-w];
+        const g2 = gx*gx + gy*gy;
+        gradSum += g2; cnt++;
+      }
+    }
+    const sharpness = gradSum / Math.max(1, cnt); // higher is sharper
+
+    const okExposure = mean >= 0.35 && mean <= 0.90;
+    const okContrast = std  >= 0.06;
+    const okSharp    = sharpness >= 0.0005; // empirical
+    const okReflex   = highlightsFrac <= 0.02;
+
+    const toLI = (ok, text) => {
+      const li = document.createElement('li');
+      li.textContent = (ok ? "✅ " : "⚠️ ") + text + (ok ? "" : " — ajustez l’éclairage/angle.");
+      li.style.color = ok ? "inherit" : "#b91c1c";
+      return li;
+    };
+
+    hintsUL.innerHTML = "";
+    hintsUL.appendChild(toLI(okExposure, "Exposition correcte"));
+    hintsUL.appendChild(toLI(okContrast, "Contraste suffisant"));
+    hintsUL.appendChild(toLI(okSharp, "Netteté correcte"));
+    hintsUL.appendChild(toLI(okReflex, "Peu de reflets"));
+
+    panel.classList.remove('d-none');
+  }
+
+  function setPreviewFromBlob(blob){
+    const url = URL.createObjectURL(blob);
+    preview.src = url;
+    preview.style.maxWidth = '100%';
+    preview.onload = () => {
+      qualityHintsFromImage(preview);
+      URL.revokeObjectURL(url);
+    };
+  }
+
+  function blobToFileInput(blob, filename){
+    const dt = new DataTransfer();
+    const file = new File([blob], filename, { type: blob.type || 'image/jpeg', lastModified: Date.now() });
+    dt.items.add(file);
+    fileInput.files = dt.files;
+  }
+
+  // Handle file selection
+  fileInput.addEventListener('change', (ev)=>{
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    preview.src = url;
+    preview.style.maxWidth = '100%';
+    preview.onload = () => {
+      qualityHintsFromImage(preview);
+      URL.revokeObjectURL(url);
+    };
+  });
+
+  // Camera controls
+  async function startCamera(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      cameraArea.classList.remove('d-none');
+    }catch(err){
+      alert("Impossible d'accéder à la caméra. Autorisez l'accès au navigateur.");
+      console.error(err);
+    }
+  }
+  function stopCamera(){
+    if (stream){
+      stream.getTracks().forEach(t=>t.stop());
+      stream = null;
+    }
+    cameraArea.classList.add('d-none');
+  }
+
+  openBtn?.addEventListener('click', startCamera);
+  closeBtn?.addEventListener('click', stopCamera);
+  stopBtn?.addEventListener('click', stopCamera);
+  switchBtn?.addEventListener('click', async ()=>{
+    facing = (facing === 'user') ? 'environment' : 'user';
+    stopCamera();
+    await startCamera();
+  });
+
+  snapBtn?.addEventListener('click', ()=>{
+    if (!video.videoWidth) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob((blob)=>{
+      if (!blob) return;
+      setPreviewFromBlob(blob);
+      blobToFileInput(blob, 'camera_capture.jpg');
+      stopCamera();
+      // Scroll to preview
+      preview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 'image/jpeg', 0.95);
+  });
+
+})();
+</script>
+<footer class="contact card">
+  <strong>Contact</strong>
+  <p>Pour plus d’informations ou des suggestions, contactez <em>Mohamed ABDAWA</em> :
+    <a href="mailto:mohamed.abdawa@inserm.fr">mohamed.abdawa@inserm.fr</a> •
+    <a href="https://wa.me/33773079090" target="_blank" rel="noopener">WhatsApp (+33) 07 73 07 90 90</a>
+  </p>
+</footer>
+
+</body>
+</html>

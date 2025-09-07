@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Impression — Fiche J‑Score</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { padding: 0; }
+      .card { box-shadow: none; border: none; }
+    }
+    .small-muted { color:#64748b; }
+  
+    /* v17.1 additions: styles for Remarque | Interprétation */
+    .remarque-interpretation{display:grid;grid-template-columns:1fr min-content 1fr;gap:1rem;align-items:start;margin:.5rem 0 1rem 0}
+    .remarque-interpretation .remarque{background:#fff8e6;color:#7a3e00;font-family:Georgia,'Times New Roman',serif;padding:.5rem .75rem;border-radius:.75rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .remarque-interpretation .separator{width:2px;background:linear-gradient(to bottom,rgba(0,0,0,.08),rgba(0,0,0,.25),rgba(0,0,0,.08));border-radius:2px;min-height:100%}
+    .remarque-interpretation .interpretation{background:#e8f4ff;color:#003a66;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;padding:.5rem .75rem;border-radius:.75rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .remarque-interpretation p{margin:.25rem 0}
+    .contact-mohamed{margin:1.25rem 0 .5rem 0;padding:.75rem 1rem;border-left:4px solid #0b62a4;background:#f1f7ff;border-radius:.5rem}
+    .contact-mohamed a{font-weight:600;text-decoration:none}
+    
+</style>
+</head>
+<body class="p-4">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div class="d-flex align-items-center" style="gap:12px">
+        <img alt="logo" width="40" height="40" src="{{ url_for('static', filename='logo_abdawa.png') }}" />
+        <h2 class="mb-0">ABDAWA J‑Score — Fiche récapitulative</h2>
+      </div>
+      <div class="no-print d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('serve_pdf', filename=pdf_name) }}" target="_blank">PDF</a>
+        <button class="btn btn-primary" onclick="window.print()">Imprimer</button>
+      </div>
+    </div>
+
+    <div class="card p-3">
+      <div class="row g-3">
+        <div class="col-md-6"><strong>ID patient</strong><br><span>{{ d.patient_id }}</span></div>
+        <div class="col-md-6"><strong>Horodatage (UTC)</strong><br><span class="small-muted">{{ d.timestamp_utc }}</span></div>
+        <div class="col-md-6"><strong>Date photo</strong><br><span>{{ d.date_photo }}</span></div>
+        <div class="col-md-6"><strong>Date biomarqueurs</strong><br><span>{{ d.date_biomarkers }}</span></div>
+        <div class="col-md-6"><strong>Diagnostic (renseignement)</strong><br><span>{{ d.diag }}</span></div>
+        <div class="col-md-6"><strong>BT (µmol/L)</strong><br><span>{{ d.bt }}</span></div>
+        <div class="col-md-6"><strong>K</strong><br><span>{{ d.jaundice_k }}</span></div>
+        <div class="col-md-6"><strong>Taux jaunissement estimé</strong><br><span>{{ d.yellow_pct }} %</span></div>
+        <div class="col-md-6"><strong>J‑score</strong><br><span>{{ d.j_score }}</span></div>
+        
+    <div class="col-12">
+      <div class="remarque-interpretation">
+        <div class="remarque">
+          <p><strong>Remarque</strong></p>
+          <p class="small-muted">
+            {%- set _remark = '' -%}
+            {%- if d.j_interpretation and 'Recommandé de reprendre' in d.j_interpretation -%}
+              {%- set _remark = 'Photo à reprendre' -%}
+            {%- endif -%}
+            {{ _remark if _remark else '—' }}
+          </p>
+        </div>
+        <div class="separator" aria-hidden="true"></div>
+        <div class="interpretation">
+          <p><strong>Interprétation</strong></p>
+          <p class="small-muted">
+            {%- if d.j_interpretation -%}
+              {%- set _base = d.j_interpretation.replace('Recommandé de reprendre ou retéléverser la photo.', '').strip() -%}
+              {%- if _base.startswith('Normale') -%}
+                Normale
+              {%- elif _base.startswith('Consulter') -%}
+                Consulter
+              {%- elif _base.startswith('Urgemment') -%}
+                Urgent&nbsp;: consulter
+              {%- else -%}
+                {{ _base }}
+              {%- endif -%}
+            {%- else -%}
+              —
+            {%- endif -%}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+        <div class="col-md-6"><strong>Consentement</strong><br><span>{{ 'Oui' if d.consent else 'Non' }}</span></div>
+        <div class="col-md-6"><strong>Signature</strong><br><span>{{ d.patient_signature }}</span></div>
+      </div>
+      <hr>
+      <div class="small-muted">Ref éthique : {{ d.consent_ref }} ({{ d.consent_version }})</div>
+    </div>
+  </div>
+
+    <div class="contact-mohamed">
+      Pour toute information complémentaire ou suggestion, vous pouvez contacter <strong>Mohamed Abdawa</strong> :
+      <a href="mailto:mohamed.abdawa@inserm.fr">mohamed.abdawa@inserm.fr</a>.
+    </div>
+    
+</body>
+</html>
