@@ -1,0 +1,7 @@
+Flask>=3.0,<4
+gunicorn>=21,<22
+numpy>=2.0
+Pillow>=10
+python-dotenv>=1.0
+reportlab>=4.0
+opencv-python-headless>=4.8
